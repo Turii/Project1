@@ -1,9 +1,7 @@
 package com.homework1;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -14,24 +12,47 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+
+
 public class Hom_work_1 {
     WebDriver driver;
     WebDriverWait wait;
     //WebDriver drv;
-    String URL;
+    String BASE_URL = "http://158.101.173.161";;
+    String LOGIN_NAME = "testadmin";
+    String LOGIN_PASS = "R8MRDAYT_test";
 
 
     @BeforeEach
-    public void setUp() {
+    public void startBrowser() {
         WebDriverManager.chromedriver().setup();
         driver = new ChromeDriver();
         wait = new WebDriverWait(driver, 10);
 
-        URL = "http://158.101.173.161/admin";
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        driver.manage().window().maximize();
+        //driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        //driver.manage().window().maximize();
+        adminLogin();
+
+    }
+
+    @Test
+    void menuNavigationTest() {
+        By menuItemsLocator = By.className("app");
+        By subMenuItemsLocator = By.className("doc");
+        By panelHeadingLocator = By.className("panel-heading");
+
+        for (int menuIterator = 1; menuIterator <= driver.findElements(menuItemsLocator).size(); menuIterator++){
+            driver.findElement(By.xpath("//li[contains(@class, 'app')]["+menuIterator+"]")).click();
+            Assertions.assertTrue(isElementPresent(panelHeadingLocator), "Heading not found");
+
+            for (int submenuIterator = 1; submenuIterator <= driver.findElements(subMenuItemsLocator).size(); submenuIterator++)
+            {
+                driver.findElement(By.xpath("//li[contains(@class, 'doc')]["+submenuIterator+"]")).click();
+                Assertions.assertTrue(isElementPresent(panelHeadingLocator), "Heading not found");
 
 
+            }
+        }
     }
 
     @AfterEach
@@ -41,66 +62,35 @@ public class Hom_work_1 {
 
 
     @Test
-    void AdminLogin() {
-        driver.get(URL);
+    void adminLogin() {
 
 
-        driver.findElement(By.cssSelector("input[name='username']")).click();
-        driver.findElement(By.cssSelector("input[name='username']")).clear();
-        driver.findElement(By.cssSelector("input[name='username']")).sendKeys("testadmin");
+        By username = By.cssSelector("input[name='username']");
+        By password = By.cssSelector("input[name='password']");
+        By loginBtn = By.cssSelector("button[name=login");
 
-        driver.findElement(By.cssSelector("input[name='password']")).click();
-        driver.findElement(By.cssSelector("input[name='password']")).clear();
-        driver.findElement(By.cssSelector("input[name='password']")).sendKeys("R8MRDAYT_test");
+        driver.get(BASE_URL + "/admin");
 
-        driver.findElement(By.cssSelector("button[name$='login']")).click();
-
-        wait.until(ExpectedConditions.elementToBeClickable(By.cssSelector("ul#box-apps-menu li[data-code=appearance]")));
-
-
-        /*List<WebElement> elements = driver.findElements(By.xpath("//span[@class='name']"));
-        System.out.println("Number of elements:" +elements.size());
-
-        String[] getelems = new String[elements.size()];*/
-        String[] titlelems = new String[18];
-        for (int i=0; i<17;i++){
-            titlelems[i] = driver.getTitle();
-            //getelems[i] = "//li[@class='app'][" + i + "+1]";
-            wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//li[@class='app'][" + i + "+1]")));
-            driver.findElement(By.xpath("//li[@class='app'][" + i + "+1]")).click();
-            //driver.findElement(By.xpath(".//li[@class='doc']")).click();
-
-            String title = driver.getTitle();
-
-            if (isElementPresent(driver, By.xpath("//div[@class='panel-heading']"))) {
-                //driver.findElement(By.xpath(".//*[@class='panel-heading']")).click();
-
-                System.out.println(title + " is present");
-            } else {
-                System.out.println(title + " is absent");
-            }
-            //driver.navigate().back();
-
-            System.out.println("Elements found:" + titlelems[i]);
+        if (isElementPresent(username)) {
+            driver.findElement(username).sendKeys(LOGIN_NAME);
+            driver.findElement(password).sendKeys(LOGIN_PASS);
+            driver.findElement(loginBtn).click();
         }
-
-
-        /*driver.findElement(By.cssSelector("ul#box-apps-menu li[data-code=appearance]")).click();
-        String title = driver.getTitle();
-
-        if (isElementPresent(driver, By.xpath("//div[@class='panel-heading']"))) {
-
-            System.out.println(title + " is present");
-        } else {
-            System.out.println(title + " is absent");
-        }*/
-        driver.navigate().back();
+        wait.until(ExpectedConditions.elementToBeClickable(By.id("box-apps-menu")));
+        pause(1);
     }
 
 
-    public boolean isElementPresent(WebDriver driver, By locator) {
+        boolean isElementPresent(By element) { return driver.findElements(element).size() > 0; }
 
-        return driver.findElements(locator).size() > 0;
-    }
+
+        void pause(int sec) {
+            try {
+                Thread.sleep(sec*1000);
+            }   catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+        }
 
 }
